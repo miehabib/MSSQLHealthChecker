@@ -198,16 +198,14 @@
             }
         }
 
-let tempstats
-        function populateSummaryData(stats){
-tempstats = stats;
+        function populateSummaryData(stats){ 
             let activeContent = $('.contentTab.active');
             let cpuTime = activeContent.find('.summary .cpuTime');
             let elapsedTime = activeContent.find('.summary .elapsedTime');
             let currTable = activeContent.find('.summary tbody');
 
-            cpuTime.text(stats.statTimeOutput.totalCPUTime);
-            elapsedTime.text(stats.statTimeOutput.totalElapsedTime);
+            cpuTime.text(convertMSToTime(stats.statTimeOutput.totalCPUTime));
+            elapsedTime.text(convertMSToTime(stats.statTimeOutput.totalElapsedTime));
  
             // Clear existing rows in table
             currTable[0].innerHTML = '';
@@ -269,6 +267,25 @@ tempstats = stats;
                     result.totalElapsedTime += parseInt(msgArr[1].replace('elapsed time =', '').replace('ms',''));
                 }
             });  
+            return result;
+        }
+
+        function convertMSToTime(duration) {
+            let result = "";
+            let milliseconds = parseInt((duration % 1000));
+            let seconds = Math.floor((duration / 1000) % 60);
+            let minutes = Math.floor((duration / (1000 * 60)) % 60);
+            let hours = Math.floor((duration / (1000 * 60 * 60)) % 24);
+
+            hours = (hours < 10) ? "0" + hours : hours;
+            minutes = (minutes < 10) ? "0" + minutes : minutes;
+            seconds = (seconds < 10) ? "0" + seconds : seconds;
+            
+            result += hours == "00" ? "" : hours + " Hour ";
+            result += minutes == "00" ? "" : minutes + " Min ";
+            result += seconds == "00" ? "" : seconds + " Sec ";
+            result += milliseconds + " MS ";
+
             return result;
         }
 

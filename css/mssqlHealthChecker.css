@@ -129,3 +129,10 @@ textarea {
 td, th {
     padding: 5px 5px;
 }
+th.sorted.ascending:after {
+	content: "  \2191";
+}
+
+th.sorted.descending:after {
+	content: " \2193";
+}

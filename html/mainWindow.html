@@ -10,8 +10,7 @@
     <link type="text/css" rel="stylesheet" href="../css/mssqlHealthChecker.css"  media="screen,projection"/>
     
     <!--Import local script-->
-    <script> window.$ = window.jQuery = require('../js/jquery.min.js');</script>
-
+    <script> window.$ = window.jQuery = require('../js/jquery.min.js');</script> 
 </head>
 <body>
     <div id="loader-wrapper" ><div id="loader"></div></div>  
@@ -35,14 +34,12 @@
             <i class="fa fa-chain-broken"></i>
             <span>Disconnected.</span>   
         </div>
-        <div id='statConnect' class="teal lighten-2" style="padding: 0px; display: none; color:white">
+        <div id='statConnect' class="teal lighten-2" style="padding: 0px 5px; display: none; color:white">
             <i class="fa fa-link"></i>
             <span>Connected.</span>  
             <span id="statConnDtl" class="right"></span> 
         </div>
     </div> 
-
-    <!-- <ul></ul> -->
 
     <script>
         const electron = require('electron');
@@ -149,13 +146,14 @@
         function tabInit(){
             // Initialize materializecss tab elements
             $('.tabs').tabs();
-            
             // Remove tab when tab's close button clicked
             $('.tabs .fa-times').click(function(){
                 removeCurrentTab(this);
             });
-
+            // Select the newly created tab
             $('.tabs').tabs('select','contentTab' + tabCounter);
+            // Enable table sorting
+            $('table').tablesort();
         }
  
         function onCancelScript(){
@@ -293,6 +291,7 @@
     
     <!--JavaScript at end of body for optimized loading-->
     <script type="text/javascript" src="../js/materialize.min.js"></script> 
-    <script type="text/javascript" src="../js/mssql.js"></script> 
+    <script type="text/javascript" src="../js/mssql.js"></script>  
+    <script type="text/javascript" src="../js/jquery.tablesort.min.js"></script>
 </body>
 </html>

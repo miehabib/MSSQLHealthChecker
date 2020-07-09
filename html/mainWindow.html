@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Health Checker</title>  
+    <!--Import Font Awesome Text Icons ver 4.7-->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    
+    <!--Import local css files-->
+    <link type="text/css" rel="stylesheet" href="../css/materialize.min.css"  media="screen,projection"/>
+    <link type="text/css" rel="stylesheet" href="../css/mssqlHealthChecker.css"  media="screen,projection"/>
+    
+    <!--Import local script-->
+    <script> window.$ = window.jQuery = require('../js/jquery.min.js');</script>
+
+</head>
+<body>
+    <div id="loader-wrapper" ><div id="loader"></div></div>  
+    <div class="white fixBar" style="top:0">   
+        <div class = "row" >
+            <div class = "col">
+                <ul class = "tabs" id="tabs" style="display: none;">  
+                    <li class = "tab" id="btnNewTab"><a href = "#dummyTab">New</a><i class="fa fa-plus" style="margin:0px;"></i></li>       
+                </ul>
+            </div> 
+        </div>  
+    </div>
+
+    <!-- <div id="content" style="margin-left: 10px; margin-right: 10px;"> -->
+    <div id="content" class="container" style="width: 100%; padding:10px; margin:5px;">
+        <div id="dummyTab"></div>
+    </div>
+     
+    <div id='statBar' class="fixBar" style="bottom:0"> 
+        <div id='statDisconnect' class="amber lighten-2" style="padding: 0px 5px;">
+            <i class="fa fa-chain-broken"></i>
+            <span>Disconnected.</span>   
+        </div>
+        <div id='statConnect' class="teal lighten-2" style="padding: 0px; display: none; color:white">
+            <i class="fa fa-link"></i>
+            <span>Connected.</span>  
+            <span id="statConnDtl" class="right"></span> 
+        </div>
+    </div> 
+
+    <!-- <ul></ul> -->
+
+    <script>
+        const electron = require('electron');
+        const {ipcRenderer} = electron;
+        let sqlConfig;
+
+        const tabs = document.querySelector('#tabs');
+        const tabTitle = document.querySelector('.tabTitle');
+        const btnNewTab = document.querySelector('#btnNewTab');
+        const content = document.querySelector('#content');
+        let tabCounter = 0;
+
+        ipcRenderer.on('connection:change', function(e, item){  
+            document.querySelector('#statDisconnect').style.display = 'none';
+            document.querySelector('#statConnect').style.display = 'block';
+            $('#statConnDtl')[0].textContent = '| '+item.server+' | '+item.user+' | '+item.database+' |';
+            
+            sqlConfig = item;
+            
+            if(tabCounter == 0){
+                tabs.style.display = 'block';
+                createTabWithContent(); 
+            }
+        });
+        
+        ipcRenderer.on('tab:new', function(){   
+            if(sqlConfig)
+                createTabWithContent();  
+        });
+
+        ipcRenderer.on('script:run', function(){   
+            if(sqlConfig){
+                let activeContent = $('.contentTab.active');
+                activeContent.find('.btnRun').trigger("click"); 
+            }
+        });
+
+        $(document).ready(function(){
+            tabInit();
+
+            // hide loader when page ready
+            document.querySelector('#loader-wrapper').style.display = 'none';
+        });
+  
+        btnNewTab.addEventListener('click',createTabWithContent);
+
+        async function createTabWithContent(){
+            tabCounter ++; 
+            createNewTab();
+            await createNewContent();
+
+            // Reinitialize materializecss tab elements
+            tabInit();  
+        }
+
+        function createNewTab(){ 
+            const btnClose = document.createElement('i');
+            btnClose.className = "fa fa-times";
+
+            const txtTab = document.createTextNode('Tab ' + tabCounter);
+            const linkTab = document.createElement('a'); 
+            //linkTab.className = 'active';
+            linkTab.setAttribute('href', '#contentTab' + tabCounter);
+            linkTab.appendChild(txtTab);
+
+            const tabNew = document.createElement('li');
+            tabNew.className = 'tab';
+            tabNew.id = 'tab' + tabCounter;
+            tabNew.appendChild(linkTab); 
+            tabNew.appendChild(btnClose);
+                
+            tabs.insertBefore(tabNew, btnNewTab);
+
+        }
+
+        async function createNewContent(){
+            await $.get("scriptCheckerTemplate.html", function(data){ 
+                const newContent = document.createElement('div');
+                newContent.id = 'contentTab' + tabCounter;
+                newContent.className = 'contentTab';
+                newContent.innerHTML = data;
+                content.appendChild(newContent);
+
+                // Two way bind for tab title and text title value 
+                const currTabTitle = document.querySelector('#tab' + tabCounter + ' a');
+                const currTxtTabTitle = document.querySelector('#contentTab' + tabCounter + ' .tabTitle');
+     
+                currTxtTabTitle.addEventListener('change', function(element){ 
+                    if(this.value)
+                        currTabTitle.text = this.value;
+                });
+
+            });
+        }
+  
+        function removeCurrentTab(element){   
+            const el = $(element).closest('li');  
+            const contentEl = $('#' + el[0].id.replace('tab', 'contentTab'));
+
+            el.remove();
+            contentEl.remove();
+        }
+
+        function tabInit(){
+            // Initialize materializecss tab elements
+            $('.tabs').tabs();
+            
+            // Remove tab when tab's close button clicked
+            $('.tabs .fa-times').click(function(){
+                removeCurrentTab(this);
+            });
+
+            $('.tabs').tabs('select','contentTab' + tabCounter);
+        }
+ 
+        function onCancelScript(){
+            cancelScript();
+        }
+
+        async function onRunScript(input){  
+            // Show loader 
+            document.querySelector('#loader-wrapper').style.display = 'block';
+            try{ 
+                let sqlScript = $(input).closest('.input-field').find('textarea')[0].value; 
+                let calculatedStat = await getScriptStatistics(sqlScript);
+                
+                populateSummaryData(calculatedStat);
+            }catch(err){ 
+                M.toast({html: err});  
+            }finally{ 
+                 // Hide loader
+                 document.querySelector('#loader-wrapper').style.display = 'none';
+            }
+        }
+  
+        async function getScriptStatistics(sqlScript){   
+            let result = {}; 
+            try{  
+                let queryStat = await runScript(sqlConfig, sqlScript);   
+
+                if(queryStat){
+                    console.log('Query ran successfully.') 
+                    result.statIOOutput = calcStatisticsIO(queryStat.IO);  
+                    result.statTimeOutput = calcStatisticsTime(queryStat.Time);   
+
+                    return result;
+                }
+                else
+                    throw 'There are no statistics on given query'
+                    
+            }catch(err){ 
+                throw err; 
+            }
+        }
+
+let tempstats
+        function populateSummaryData(stats){
+tempstats = stats;
+            let activeContent = $('.contentTab.active');
+            let cpuTime = activeContent.find('.summary .cpuTime');
+            let elapsedTime = activeContent.find('.summary .elapsedTime');
+            let currTable = activeContent.find('.summary tbody');
+
+            cpuTime.text(stats.statTimeOutput.totalCPUTime);
+            elapsedTime.text(stats.statTimeOutput.totalElapsedTime);
+ 
+            // Clear existing rows in table
+            currTable[0].innerHTML = '';
+            // Add record for each table statistics
+            $.each(stats.statIOOutput, function(index, item){
+                let rowData = '<td>'+item.tblName+'</td>';
+                rowData += '<td>'+item.logicalReads+'</td>';
+                rowData += '<td>'+item.physicalReads+'</td>';
+                rowData += '<td>'+item.readAheadReads+'</td>';
+                rowData += '<td>'+item.lobLogicalReads+'</td>';
+                rowData += '<td>'+item.lobPhysicalReads+'</td>';
+                rowData += '<td>'+item.lobReadAheadReads+'</td>';
+                currTable.append('<tr>'+rowData+'</tr>'); 
+            });
+
+            activeContent.find('.summary').show();
+        }
+
+        function calcStatisticsIO(statIO){
+            let result = {};
+            $.each(statIO, function(index, item){
+                let msg = item.message;
+                let msgArr = msg.split(',');
+                let tableName = msg.substring(msg.indexOf("'") + 1, msg.lastIndexOf("'"));
+                if(result[tableName]){
+                    result[tableName].logicalReads += parseInt(msgArr[1].replace('logical reads', ''));
+                    result[tableName].physicalReads += parseInt(msgArr[2].replace('physical reads', ''));
+                    result[tableName].readAheadReads += parseInt(msgArr[4].replace('read-ahead reads', ''));
+                    result[tableName].lobLogicalReads += parseInt(msgArr[6].replace('lob logical reads', ''));
+                    result[tableName].lobPhysicalReads += parseInt(msgArr[7].replace('lob physical reads', ''));
+                    result[tableName].lobReadAheadReads += parseInt(msgArr[9].replace('lob read-ahead reads', ''));
+                }else{ 
+                    let resultStat = {};
+                    resultStat.tblName = tableName;
+                    resultStat.logicalReads = parseInt(msgArr[1].replace('logical reads', ''));
+                    resultStat.physicalReads = parseInt(msgArr[2].replace('physical reads', ''));
+                    resultStat.readAheadReads = parseInt(msgArr[4].replace('read-ahead reads', ''));
+                    resultStat.lobLogicalReads = parseInt(msgArr[6].replace('lob logical reads', ''));
+                    resultStat.lobPhysicalReads = parseInt(msgArr[7].replace('lob physical reads', ''));
+                    resultStat.lobReadAheadReads = parseInt(msgArr[9].replace('lob read-ahead reads', ''));
+                    result[tableName] = resultStat;
+                }
+            });
+            return result;
+        }
+ 
+        function calcStatisticsTime(statTime){
+            let result = {};
+            result.totalCPUTime = 0;
+            result.totalElapsedTime = 0;
+            let currLineNum = 0; 
+            $.each(statTime, function(index, item){
+                if(item.lineNumber >= currLineNum){
+                    currLineNum = item.lineNumber;
+                    let msg = item.message;
+                    let msgLastLine = msg.substr(msg.lastIndexOf("\n")+1);
+                    let msgArr = msgLastLine.split(",");
+                    result.totalCPUTime += parseInt(msgArr[0].replace('CPU time =', '').replace('ms',''));
+                    result.totalElapsedTime += parseInt(msgArr[1].replace('elapsed time =', '').replace('ms',''));
+                }
+            });  
+            return result;
+        }
+
+    </script>
+    
+    <!--JavaScript at end of body for optimized loading-->
+    <script type="text/javascript" src="../js/materialize.min.js"></script> 
+    <script type="text/javascript" src="../js/mssql.js"></script> 
+</body>
+</html>

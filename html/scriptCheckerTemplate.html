@@ -1,0 +1,42 @@
+<div class="input-field">
+    <div>
+        <input class="tabTitle txtBox" style="height: 25px; width: 300px; " type="text" placeholder="Change Tab Name (Max 15 char)" maxlength="15"> 
+        <div class="right"> 
+            <button class="btn waves-effect waves-light btnRun" onclick="onRunScript(this)">Run</button>  
+            <button class="btn waves-effect waves-light cancel" onclick="onCancelScript()">Cancel</button>  
+        </div> 
+    </div>
+    
+    <textarea class="materialize-textarea txtBox"></textarea> 
+</div>
+
+<div class="summary" style="display: none;"><b>Summary:</b>
+  <div style="margin:10px 5px 25px 5px; font-size: 12px;">
+    <div>Total Cpu Time: <span class="cpuTime"></span></div>
+    <div>Total Elapsed Time: <span class="elapsedTime"></span></div>
+    <table class='striped highlight'>
+      <colgroup>
+          <col span="1" style="width: 28%;">
+          <col span="1" style="width: 12%;">
+          <col span="1" style="width: 12%;">
+          <col span="1" style="width: 12%;">
+          <col span="1" style="width: 12%;">
+          <col span="1" style="width: 12%;">
+          <col span="1" style="width: 12%;">
+        </colgroup>
+      <thead>
+        <tr>
+            <th data-field="id">Table</th>
+            <th data-field="name">Logical Reads</th>
+            <th data-field="name">Physical Reads</th>
+            <th data-field="name">Read-Ahead Reads</th>
+            <th data-field="name">Lob Logical Reads</th>
+            <th data-field="name">Lob Physical Reads</th>
+            <th data-field="name">LobRead-Ahead Reads</th>
+        </tr>
+      </thead>
+      <tbody> 
+      </tbody>
+    </table> 
+  </div>   
+</div>

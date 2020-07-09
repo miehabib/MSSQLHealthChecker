@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Connect to Database Engine</title>
+    
+    <!--Import local css files-->
+    <link type="text/css" rel="stylesheet" href="../css/materialize.min.css"  media="screen,projection"/>
+    <link type="text/css" rel="stylesheet" href="../css/mssqlHealthChecker.css"  media="screen,projection"/>
+    
+    <!--Import local script-->
+    <script> window.$ = window.jQuery = require('../js/jquery.min.js');</script>
+</head>
+<body> 
+    <div id="loader-wrapper" ><div id="loader"></div></div>  
+    <form> 
+        <div class="container">   
+            <div>
+                <label>Server Name</label>
+                <input type="text" id="serverName" required autofocus>
+            </div>
+            <div>
+                <label>DB Name</label>
+                <input type="text" id="dbName" required>
+            </div>
+            <div>
+                <label>User Name</label>
+                <input type="text" id="userName" required>
+            </div>
+            <div>
+                <label>Password</label>
+                <input type="password" id="password" required>
+            </div>  
+            <div class="left" style="width: 40%;">
+                <label>Port</label>
+                <input type="number" min="1" id="port" placeholder="1433">
+            </div>  
+            <div class="right" style="margin-top: 25px;">
+                <button class="btn waves-effect waves-light" type="submit" id="btnConnect">Connect</button> 
+                <button class="btn waves-effect waves-light cancel" id="btnCancel">Close</button>  
+            </div> 
+        </div>
+    </form>
+
+    <script>
+        const electron = require('electron');
+        const {ipcRenderer} = electron; 
+         
+        const btnConnect = document.querySelector('form');
+        btnConnect.addEventListener('submit', onBtnConnectClicked);
+
+        const btnCancel = document.querySelector('#btnCancel');
+        btnCancel.addEventListener('click', onBtnCancelClicked);
+         
+        async function onBtnConnectClicked(e){
+            e.preventDefault();
+            
+            // Show loader
+            document.querySelector('#loader-wrapper').style.display = 'block';
+             
+            let serverName = document.querySelector('#serverName').value;
+            serverName = serverName == '.' ? 'localhost' : serverName;
+
+            let portNum = parseInt(document.querySelector('#port').value);
+            portNum = portNum == '' ? 1433 : portNum;
+
+            //Database Configuration
+            let sqlConfig = {
+                server: serverName, 
+                port: portNum,
+                user: document.querySelector('#userName').value, 
+                password: document.querySelector('#password').value,
+                database: document.querySelector('#dbName').value
+            };
+             
+            try{
+                let isConnected = await checkDBConnection(sqlConfig);  
+                // Send sql connection to main if connection succeeded
+                ipcRenderer.send('connection:change', sqlConfig);
+                window.close(); 
+            }catch(err){ 
+                M.toast({html: err});  
+                console.log(err);
+            }finally{ 
+                 // Hide loader
+                 document.querySelector('#loader-wrapper').style.display = 'none';
+            }
+           
+        }
+
+        function onBtnCancelClicked(e){
+            window.close();
+        }
+
+        $(document).ready(function(){ 
+            // hide loader when page ready
+            document.querySelector('#loader-wrapper').style.display = 'none';
+        });
+    </script>
+
+    <!--JavaScript at end of body for optimized loading-->
+    <script type="text/javascript" src="../js/materialize.min.js"></script>
+    <script type="text/javascript" src="../js/mssql.js"></script>
+</body>
+</html>

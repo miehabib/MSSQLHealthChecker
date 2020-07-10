@@ -5,7 +5,7 @@ const {app, BrowserWindow, Menu, ipcMain} = electron;
 const { remote } = require('electron');
 
 // Set env
-process.env.NODE_ENV = 'production'; // production || dev
+process.env.NODE_ENV = 'dev'; // production || dev
  
 const webPref = {nodeIntegration: true};
 let mainWindow; 

@@ -136,3 +136,6 @@ th.sorted.ascending:after {
 th.sorted.descending:after {
 	content: " \2193";
 }
+th:hover{
+    cursor: pointer;
+}

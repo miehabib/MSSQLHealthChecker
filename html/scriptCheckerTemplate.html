@@ -2,7 +2,7 @@
     <div>
         <input class="tabTitle txtBox" style="height: 25px; width: 300px; " type="text" placeholder="Change Tab Name (Max 15 char)" maxlength="15"> 
         <div class="right"> 
-            <button class="btn waves-effect waves-light btnRun" onclick="onRunScript(this)">Run</button>  
+            <button class="btn waves-effect waves-light btnRun tooltipped" data-position="top" data-tooltip="Execute (F5)" onclick="onRunScript(this)">Execute</button>  
             <button class="btn waves-effect waves-light cancel" onclick="onCancelScript()">Cancel</button>  
         </div> 
     </div>
@@ -11,18 +11,18 @@
 </div>
 
 <div class="summary" style="display: none;"><b>Summary:</b>
-  <div style="margin:10px 5px 25px 5px; font-size: 12px;">
-    <div>Total Cpu Time: <strong class="cpuTime"></strong></div>
-    <div>Total Elapsed Time: <strong class="elapsedTime"></strong></div>
+  <div style="margin:10px 5px 25px 5px; font-size: 12px;"> 
+    <div class="row"><div class="col s2">Total Cpu Time: </div><strong class="col s10 cpuTime"></strong></div>
+    <div class="row"><div class="col s2">Total Elapsed Time: </div><strong class="col s10 elapsedTime"></strong></div>   
     <table class='striped highlight'>
       <colgroup>
-          <col span="1" style="width: 28%;">
-          <col span="1" style="width: 12%;">
-          <col span="1" style="width: 12%;">
-          <col span="1" style="width: 12%;">
-          <col span="1" style="width: 12%;">
-          <col span="1" style="width: 12%;">
-          <col span="1" style="width: 12%;">
+          <col span="1" style="width: 22%;">
+          <col span="1" style="width: 13%;">
+          <col span="1" style="width: 13%;">
+          <col span="1" style="width: 13%;">
+          <col span="1" style="width: 13%;">
+          <col span="1" style="width: 13%;">
+          <col span="1" style="width: 13%;">
         </colgroup>
       <thead>
         <tr>

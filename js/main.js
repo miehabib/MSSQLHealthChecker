@@ -5,7 +5,7 @@ const {app, BrowserWindow, Menu, ipcMain} = electron;
 const { remote } = require('electron');
 
 // Set env
-process.env.NODE_ENV = 'dev';
+process.env.NODE_ENV = 'production'; // production || dev
  
 const webPref = {nodeIntegration: true};
 let mainWindow; 
@@ -15,11 +15,15 @@ let connectionWindow;
 app.on('ready', function(){ 
 
     // Create main and connection window on first load
-    mainWindow = new BrowserWindow({ webPreferences: webPref }); 
+    mainWindow = new BrowserWindow({ webPreferences: webPref}); 
     connectionWindow = new BrowserWindow({ webPreferences: webPref, width: 500, height:430, parent:mainWindow, modal:true, minimizable: false,maximizable: false});
  
     mainWindow.loadURL(`file://${__dirname}/../html/mainWindow.html`); 
     connectionWindow.loadURL(`file://${__dirname}/../html/connectionWindow.html`);
+
+    // Hide Menu from connection window in releas mode. 
+    if(process.env.NODE_ENV == 'production')
+        connectionWindow.setMenuBarVisibility(false)
 
     // Hide window instead of close
     connectionWindow.on('close', (e)=>{

@@ -78,7 +78,6 @@
         });
 
         $(document).ready(function(){
-//tabInit();
 
             // hide loader when page ready
             document.querySelector('#loader-wrapper').style.display = 'none';
@@ -101,7 +100,7 @@
 
             const txtTab = document.createTextNode('Tab ' + tabCounter);
             const linkTab = document.createElement('a'); 
-            //linkTab.className = 'active';
+            
             linkTab.setAttribute('href', '#contentTab' + tabCounter);
             linkTab.appendChild(txtTab);
 
@@ -168,7 +167,7 @@
             try{ 
                 let sqlScript = $(input).closest('.input-field').find('textarea')[0].value; 
                 let calculatedStat = await getScriptStatistics(sqlScript);
-                
+
                 populateSummaryData(calculatedStat);
             }catch(err){ 
                 M.toast({html: err});  
@@ -177,16 +176,17 @@
                  document.querySelector('#loader-wrapper').style.display = 'none';
             }
         }
-  
+        
         async function getScriptStatistics(sqlScript){   
             let result = {}; 
             try{  
                 let queryStat = await runScript(sqlConfig, sqlScript);   
 
                 if(queryStat){
-                    console.log('Query ran successfully.') 
+                    console.log('Query ran successfully.'); 
+
                     result.statIOOutput = calcStatisticsIO(queryStat.IO);  
-                    result.statTimeOutput = calcStatisticsTime(queryStat.Time);   
+                    result.statTimeOutput = calcStatisticsTime(queryStat.Time);    
 
                     return result;
                 }
@@ -211,13 +211,13 @@
             currTable[0].innerHTML = '';
             // Add record for each table statistics
             $.each(stats.statIOOutput, function(index, item){
-                let rowData = '<td>'+item.tblName+'</td>';
-                rowData += '<td>'+item.logicalReads+'</td>';
-                rowData += '<td>'+item.physicalReads+'</td>';
-                rowData += '<td>'+item.readAheadReads+'</td>';
-                rowData += '<td>'+item.lobLogicalReads+'</td>';
-                rowData += '<td>'+item.lobPhysicalReads+'</td>';
-                rowData += '<td>'+item.lobReadAheadReads+'</td>';
+                let rowData = '<td>'+item['tableName']+'</td>';
+                rowData += '<td>'+item['logical reads']+'</td>';
+                rowData += '<td>'+item['physical reads']+'</td>';
+                rowData += '<td>'+item['read-ahead reads']+'</td>';
+                rowData += '<td>'+item['lob logical reads']+'</td>';
+                rowData += '<td>'+item['lob physical reads']+'</td>';
+                rowData += '<td>'+item['lob read-ahead reads']+'</td>';
                 currTable.append('<tr>'+rowData+'</tr>'); 
             });
 
@@ -226,28 +226,28 @@
 
         function calcStatisticsIO(statIO){
             let result = {};
-            $.each(statIO, function(index, item){
+            $.each(statIO, (index, item) => {
                 let msg = item.message;
-                let msgArr = msg.split(',');
-                let tableName = msg.substring(msg.indexOf("'") + 1, msg.lastIndexOf("'"));
-                if(result[tableName]){
-                    result[tableName].logicalReads += parseInt(msgArr[1].replace('logical reads', ''));
-                    result[tableName].physicalReads += parseInt(msgArr[2].replace('physical reads', ''));
-                    result[tableName].readAheadReads += parseInt(msgArr[4].replace('read-ahead reads', ''));
-                    result[tableName].lobLogicalReads += parseInt(msgArr[6].replace('lob logical reads', ''));
-                    result[tableName].lobPhysicalReads += parseInt(msgArr[7].replace('lob physical reads', ''));
-                    result[tableName].lobReadAheadReads += parseInt(msgArr[9].replace('lob read-ahead reads', ''));
-                }else{ 
-                    let resultStat = {};
-                    resultStat.tblName = tableName;
-                    resultStat.logicalReads = parseInt(msgArr[1].replace('logical reads', ''));
-                    resultStat.physicalReads = parseInt(msgArr[2].replace('physical reads', ''));
-                    resultStat.readAheadReads = parseInt(msgArr[4].replace('read-ahead reads', ''));
-                    resultStat.lobLogicalReads = parseInt(msgArr[6].replace('lob logical reads', ''));
-                    resultStat.lobPhysicalReads = parseInt(msgArr[7].replace('lob physical reads', ''));
-                    resultStat.lobReadAheadReads = parseInt(msgArr[9].replace('lob read-ahead reads', ''));
-                    result[tableName] = resultStat;
-                }
+                let msgArr = msg.slice(0, -1).split(',');
+                let tableName = msgArr[0].substring(msg.indexOf("'") + 1, msg.lastIndexOf("'"));
+                
+                for(let i=1; i<msgArr.length; i++){
+                    let key = msgArr[i].replace(/[0-9]/g, '').trim();
+                    let val = parseInt(msgArr[i].replace(/\D/g,''));
+            
+                    if(result[tableName]){
+                        if(result[tableName][key])
+                            result[tableName][key] += val;
+                        else 
+                            result[tableName][key] = val;
+                    }
+                    else{        
+                        result[tableName] = {};
+                        result[tableName]['tableName'] = tableName;
+                        result[tableName][key] = val;  
+                    }
+                };
+            
             });
             return result;
         }

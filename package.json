@@ -1,20 +1,18 @@
 {
   "name": "mssqlhealthchecker",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "productName": "MSSQLChecker",
   "description": "MSSQLChecker",
   "main": "js/main.js",
-"scripts": {
+  "scripts": {
     "start": "electron .",
     "package-mac": "electron-packager . --overwrite --platform=darwin --arch=x64 --icon=assets/icons/mac/icon.icns --prune=true --out=release-builds",
-    "package-win": "electron-packager . --overwrite --asar --icon=assets/icons/win/icon.ico --out=release-builds",    
+    "package-win": "electron-packager . --overwrite --asar --icon=assets/icons/win/icon.ico --out=release-builds",
     "package-linux": "electron-packager . mssqlhealthchecker --overwrite --asar --platform=linux --arch=x64 --icon=assets/icons/png/1024x1024.png --prune=true --out=release-builds"
   },
   "author": "ruhaimi",
   "license": "MIT",
   "dependencies": {
-    "electron-tabs": "^0.15.0",
-    "js-tabs": "^1.0.1",
     "mssql": "^6.2.0"
   },
   "devDependencies": {

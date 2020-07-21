@@ -202,13 +202,23 @@
             let activeContent = $('.contentTab.active');
             let cpuTime = activeContent.find('.summary .cpuTime');
             let elapsedTime = activeContent.find('.summary .elapsedTime');
-            let currTable = activeContent.find('.summary tbody');
+            let currTable = activeContent.find('.summary tbody'); 
+            let currTableFooter = activeContent.find('.summary tfoot'); 
 
             cpuTime.text(convertMSToTime(stats.statTimeOutput.totalCPUTime));
             elapsedTime.text(convertMSToTime(stats.statTimeOutput.totalElapsedTime));
  
             // Clear existing rows in table
-            currTable[0].innerHTML = '';
+            currTable[0].innerHTML = ''; 
+            currTableFooter[0].innerHTML = ''; 
+            
+            let totLogRead = 0;
+            let totPhyRead = 0;
+            let totReadAheadRead = 0;
+            let totLobLogRead = 0;
+            let totLobPhyRead = 0;
+            let totLobReadAheadRead = 0;
+            
             // Add record for each table statistics
             $.each(stats.statIOOutput, function(index, item){
                 let rowData = '<td>'+item['tableName']+'</td>';
@@ -219,7 +229,19 @@
                 rowData += '<td>'+item['lob physical reads']+'</td>';
                 rowData += '<td>'+item['lob read-ahead reads']+'</td>';
                 currTable.append('<tr>'+rowData+'</tr>'); 
+
+                totLogRead+= item['logical reads'];
+                totPhyRead += item['physical reads'];
+                totReadAheadRead += item['read-ahead reads'];
+                totLobLogRead += item['lob logical reads'];
+                totLobPhyRead += item['lob physical reads'];
+                totLobReadAheadRead += item['lob read-ahead reads'];
             });
+            
+            let summaryRow = '<th>Total</th>';
+            summaryRow += '<th>'+totLogRead+'</th><th>'+totPhyRead+'</th><th>'+totReadAheadRead+'</th>';
+            summaryRow += '<th>'+totLobLogRead+'</th><th>'+totLobPhyRead+'</th><th>'+totLobReadAheadRead+'</th>'; 
+            currTableFooter.append('<tr>'+summaryRow+'</tr>');  
 
             activeContent.find('.summary').show();
         }

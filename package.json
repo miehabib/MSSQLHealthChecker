@@ -7,7 +7,7 @@
   "scripts": {
     "start": "electron .",
     "package-mac": "electron-packager . --overwrite --platform=darwin --arch=x64 --icon=assets/icons/mac/icon.icns --prune=true --out=release-builds",
-    "package-win": "electron-packager . --overwrite --asar --prune=true --icon=assets/icons/win/icon.ico --out=release-builds",
+    "package-win": "electron-packager . mssqlhealthchecker --overwrite --asar --prune=true --icon=assets/icons/win/icon.ico --out=release-builds",
     "package-linux": "electron-packager . mssqlhealthchecker --overwrite --asar --platform=linux --arch=x64 --icon=assets/icons/png/icon.png --prune=true --out=release-builds"
   },
   "author": "ruhaimi",
